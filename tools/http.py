@@ -1,11 +1,12 @@
 import sys
 import settings
+from tools import format_html
 from urlparse import unquote
 
 def render_html(filename, context={}):
     with open(settings.TEMPLATE_DIR + filename, 'rb') as f:
         HTML = f.read()
-    HTML = HTML.format(**context)
+    HTML = format_html(HTML, context)
     resp = "\r\n".join(["HTTP/1.1 200 OK",
                         "Content-Type: text/html",
                         "Content-Length: {length}",

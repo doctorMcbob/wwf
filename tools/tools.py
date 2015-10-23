@@ -4,12 +4,11 @@ class TemplateError(Exception):
     pass
 
 def format_html(html, context):
-    html = re.split(r'{{ | }}', html)
-    
+    print context
+    html = re.split(r'{{ | }}', html)    
     for i, text in enumerate(html):
         if i % 2:
             cmds = text.split(" ")
-            
             while True:
                 try:
                     var_idx = cmds.index("var")
@@ -25,14 +24,24 @@ def format_html(html, context):
             
     
             if cmds[0] == "for":
-                tocopy = html[i + 1:html.index(endfor)]
-                var = cmds[1]
-                iterable = cmds[3]
-
+                tocopy = html[i + 1:html.index("endfor")]
+                del html[i + 1:html.index("endfor") + 1]
+                var = cmds[1:cmds.index("in")]
+                iterable = context[cmds[cmds.index("in") + 1]]
+                cmds = []
+                
                 for item in iterable:
-                    sect = tocopy
-                    # TODO!!
-
+                    con = context.copy()
+                    if len(var) == 1:
+                        con.update({var[0]: item})
+                    else:
+                        for t in var:
+                            con.update({t: item.pop()})
+                    sect = format_html(
+                        "{{ ".join(tocopy), con
+                    )
+                    
+                    cmds.append(sect)
             html[i] = " ".join(cmds)
 
     return "".join(html) 
@@ -41,14 +50,17 @@ def format_html(html, context):
 if __name__ == "__main__":
     text = """
 This is text that will be {{ var VERB }}.
-{{ for n in var LIST }}
-{{ n }}
+{{ for x n in LIST }}
+test1
+{{ var n }}
+{{ var x }}
+test2
 {{ endfor }}
 The end :)
 """
-    print text
+
     context = {
         "VERB": "formatted",
-        "LIST": ["This", "Is", "A", "Loop"]
+        "LIST": [["This", ".."],  ["Is", "A"], ["Loop", "sdfsadf"]]
     }
     print format_html(text, context)

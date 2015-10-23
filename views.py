@@ -4,13 +4,20 @@ from tools.views import ViewConfig
 
 from models import BlogPost
 
+
 @ViewConfig(r"^/$", "GET")
 def homeview(request, session):
-    return render_html("index.html")
+    context = {"posts": []}
+    posts = BlogPost.get_all(session)
+    for post in posts:
+        context["posts"].append([post.title, post.id])
+    return render_html("index.html", context)
+
 
 @ViewConfig(r"^/about$", "GET")
 def aboutview(request, session):
     return render_html("about.html")
+
 
 @ViewConfig(r"^/post/\d+$", "GET")
 def postview(request, session):
@@ -28,9 +35,11 @@ def postview(request, session):
         "text": text
     })
 
+
 @ViewConfig(r"^/new$", "GET")
 def newview(request, session):
     return render_html("new.html")
+
 
 @ViewConfig(r"^/new$", "POST")
 def add(request, session):
